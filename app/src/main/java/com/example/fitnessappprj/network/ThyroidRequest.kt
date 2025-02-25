@@ -1,0 +1,33 @@
+package com.example.fitnessappprj.network
+
+data class ThyroidRequest(
+    val age: Int,
+    val sex: String,
+    val on_thyroxine: String,
+    val query_on_thyroxine: String,
+    val on_antithyroid_medication: String,
+    val sick: String,
+    val pregnant: String,
+    val thyroid_surgery: String,
+    val I131_treatment: String,
+    val query_hypothyroid: String,
+    val query_hyperthyroid: String,
+    val lithium: String,
+    val goitre: String,
+    val tumor: String,
+    val hypopituitary: String,
+    val psych: String,
+    val TSH_measured: String,
+    val TSH: Double,
+    val T3_measured: String,
+    val T3: Double,
+    val TT4_measured: String,
+    val TT4: Int,
+    val T4U_measured: String,
+    val T4U: Double,
+    val FTI_measured: String,
+    val FTI: Int,
+    val TBG_measured: String,
+    val TBG: String,
+    val referral_source: String
+)
