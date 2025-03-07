@@ -24,6 +24,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,10 @@ import com.example.fitnessapp.R
 import com.example.fitnessapp.misc.FitResultScreen
 import com.example.fitnessapp.misc.FitTopAppBar
 import com.example.fitnessapp.misc.testthings
+import com.example.fitnessappprj.network.geminiApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -69,6 +74,26 @@ fun FitWorkoutForm(
     val activityLevels = listOf("Sedentary", "Lightly Active", "Moderately Active", "Highly Active")
 
     var showResultScreen by remember { mutableStateOf(false) }
+
+    var workoutPlan by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isLoading) {
+        if (isLoading) {
+            workoutPlan = withContext(Dispatchers.IO) {
+                geminiApi(
+                    "Generate a personalized workout plan for a ${selectedFitnessLevel.lowercase()} " +
+                            "individual with a goal of $fitnessGoal. The user prefers $selectedWorkoutType " +
+                            "workouts, can work out $workoutFrequency times per week, has a duration of " +
+                            "$workoutDuration minutes per session, and has the following constraints: " +
+                            "Health conditions: $healthConditions, Injuries: $injuries."
+                )
+            }
+            isLoading = false
+            showResultScreen = true
+        }
+    }
+
 
 
     Scaffold(
@@ -358,20 +383,11 @@ fun FitWorkoutForm(
                     item {
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
-                            onClick = {
-                                showResultScreen = true
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 10.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(id = R.color.base)
-                            )
+                            onClick = { isLoading = true },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.base))
                         ) {
-                            Text(
-                                text = "Generate Plan",
-                                fontSize = 18.sp
-                            )
+                            Text(text = if (isLoading) "Generating..." else "Generate Plan", fontSize = 18.sp)
                         }
                     }
                 }

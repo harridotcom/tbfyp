@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,9 @@ import com.example.fitnessapp.R
 import com.example.fitnessapp.misc.FitResultScreen
 import com.example.fitnessapp.misc.FitTopAppBar
 import com.example.fitnessapp.misc.testthings
+import com.example.fitnessappprj.network.geminiApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +67,27 @@ fun FitDietForm(
     var selectedMeal by remember { mutableStateOf("") }
 
     var showResultScreen by remember { mutableStateOf(false) }
+
+    var dietPlan by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isLoading) {
+        if (isLoading) {
+            dietPlan = withContext(Dispatchers.IO) {
+                geminiApi(
+                    "Generate a personalized diet plan for a ${age}-year-old individual " +
+                            "who weighs ${weight} kg and has a height of ${height} cm. " +
+                            "Their dietary preference is $selectedDietary, and they have the following " +
+                            "allergies or medical conditions: $allergies. " +
+                            "The individual aims for $selectedMeal, so provide a structured meal plan " +
+                            "that supports this goal, considering nutritional balance and food variety."
+                )
+            }
+            isLoading = false
+            showResultScreen = true
+        }
+    }
+
 
     Scaffold(
         topBar = { FitTopAppBar(navController = navController) },
@@ -279,20 +304,13 @@ fun FitDietForm(
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = {
-                            showResultScreen = true
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(10.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(R.color.base)
-                        )
+                        onClick = { isLoading = true },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.base))
                     ) {
-                        Text("Generate Plan", fontSize = 18.sp)
+                        Text(text = if (isLoading) "Generating..." else "Generate Plan", fontSize = 18.sp)
                     }
                 }
-
             }
         }
 

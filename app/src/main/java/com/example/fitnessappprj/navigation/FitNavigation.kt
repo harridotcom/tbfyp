@@ -44,7 +44,10 @@ fun FitNavigation(modifier: Modifier = Modifier, fitnessViewModel: FitnessViewMo
             ThyroidForm(navController = navController, fitnessViewModel = fitnessViewModel)
         }
         composable("obesityForm"){
-            ObesityForm(navController = navController)
+            ObesityForm(
+                navController = navController,
+                fitnessViewModel = fitnessViewModel
+            )
         }
         composable("healthAssessment"){
             HealthAssessment(navController = navController)
