@@ -41,10 +41,8 @@ import androidx.navigation.NavController
 import com.example.fitnessapp.R
 import com.example.fitnessapp.misc.FitResultScreen
 import com.example.fitnessapp.misc.FitTopAppBar
-import com.example.fitnessapp.misc.testthings
-import com.example.fitnessappprj.network.geminiApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.example.fitnessappprj.network.GeminiRequest
+import com.example.fitnessappprj.network.RetrofitClient
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
@@ -80,15 +78,24 @@ fun FitWorkoutForm(
 
     LaunchedEffect(isLoading) {
         if (isLoading) {
-            workoutPlan = withContext(Dispatchers.IO) {
-                geminiApi(
-                    "Generate a personalized workout plan for a ${selectedFitnessLevel.lowercase()} " +
-                            "individual with a goal of $fitnessGoal. The user prefers $selectedWorkoutType " +
-                            "workouts, can work out $workoutFrequency times per week, has a duration of " +
-                            "$workoutDuration minutes per session, and has the following constraints: " +
-                            "Health conditions: $healthConditions, Injuries: $injuries."
+            workoutPlan = try {
+                val request = GeminiRequest(
+                    """
+        Generate a personalized workout plan for a ${selectedFitnessLevel.lowercase()} 
+        individual with a goal of $fitnessGoal. The user prefers $selectedWorkoutType 
+        workouts, can work out $workoutFrequency times per week, has a duration of 
+        $workoutDuration minutes per session, and has the following constraints: 
+        Health conditions: $healthConditions, Injuries: $injuries.
+        """.trimIndent()
                 )
+
+                val response = RetrofitClient.instance.getGeminiResponse(request)
+                response.toString() // Ensure the response is converted to a string correctly
+
+            } catch (e: Exception) {
+                "Unable to generate workout plan: ${e.message}"
             }
+
             isLoading = false
             showResultScreen = true
         }
@@ -103,7 +110,7 @@ fun FitWorkoutForm(
             if (showResultScreen) {
                 FitResultScreen(
                     onDismiss = { showResultScreen = false },
-                    text = testthings.workoutPlan,
+                    text = workoutPlan,  // Use the API response
                     planType = "Your Workout Plan"
                 )
             }

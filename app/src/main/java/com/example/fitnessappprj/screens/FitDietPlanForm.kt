@@ -37,8 +37,8 @@ import androidx.navigation.NavController
 import com.example.fitnessapp.R
 import com.example.fitnessapp.misc.FitResultScreen
 import com.example.fitnessapp.misc.FitTopAppBar
-import com.example.fitnessapp.misc.testthings
-import com.example.fitnessappprj.network.geminiApi
+import com.example.fitnessappprj.network.GeminiRequest
+import com.example.fitnessappprj.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -73,15 +73,23 @@ fun FitDietForm(
 
     LaunchedEffect(isLoading) {
         if (isLoading) {
-            dietPlan = withContext(Dispatchers.IO) {
-                geminiApi(
-                    "Generate a personalized diet plan for a ${age}-year-old individual " +
-                            "who weighs ${weight} kg and has a height of ${height} cm. " +
-                            "Their dietary preference is $selectedDietary, and they have the following " +
-                            "allergies or medical conditions: $allergies. " +
-                            "The individual aims for $selectedMeal, so provide a structured meal plan " +
-                            "that supports this goal, considering nutritional balance and food variety."
+            dietPlan = try {
+                val request = GeminiRequest(
+                    """
+                 Generate a personalized diet plan for a ${age}-year-old individual 
+                    who weighs ${weight} kg and has a height of ${height} cm. 
+                    Their dietary preference is $selectedDietary, and they have the following 
+                    allergies or medical conditions: $allergies. 
+                    The individual aims for $selectedMeal, so provide a structured meal plan 
+                    that supports this goal, considering nutritional balance and food variety.
+                    """.trimIndent()
                 )
+
+                val response = RetrofitClient.instance.getGeminiResponse(request)
+                response.toString() // Ensure the response is converted to a string correctly
+
+            } catch (e: Exception) {
+                "Unable to generate workout plan: ${e.message}"
             }
             isLoading = false
             showResultScreen = true
@@ -101,7 +109,7 @@ fun FitDietForm(
             if (showResultScreen) {
                 FitResultScreen(
                     onDismiss = { showResultScreen = false },
-                    text = testthings.dietPlan,
+                    text = dietPlan,
                     planType = "Your Diet Plan"
                 )
             }
